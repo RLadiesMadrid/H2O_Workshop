@@ -1,0 +1,152 @@
+---
+title: "H2O Workshop"
+subtitle: Airlines Dataframe
+output:
+  html_document:
+    df_print: paged
+---
+
+## Set your environment
+
+```{r environment}
+# Install snippet
+# source('install.R')
+
+setwd(getwd())
+
+library(h2o)
+h2o.init(nthreads=-1, max_mem_size="2G")
+h2o.removeAll() ## clean slate - just in case the cluster was already running
+h2o.clusterStatus()
+```
+
+## Data wrangling
+
+[Data information](http://stat-computing.org/dataexpo/2009/the-data.html)
+
+Prepare your data for modelling.
+
+```{r data}
+flights.hex <- h2o.importFile(path = 'data/allyears2k.csv', 
+                     destination_frame = 'flights.hex')
+flights.hex[1:5, ]
+
+flights.hex["Year"] <- as.factor(flights.hex["Year"])
+flights.hex["Month"] <- as.factor(flights.hex["Month"])
+flights.hex["DayOfWeek"] <- as.factor(flights.hex["DayOfWeek"])
+flights.hex["Cancelled"] <- as.factor(flights.hex["Cancelled"])
+flights.hex['FlightNum'] <- as.factor(flights.hex['FlightNum'])
+
+
+h2o.summary(flights.hex, exact_quantiles=TRUE)
+```
+
+Response is _IsArrDelayed_ and is a numerical column. 
+
+### Data exploration
+
+Quantiles and histograms
+
+- Quantile: A sorted sample is divided into equal-sized, adjacent, subgroups. The quartiles are the 25, 50, and 75 quantiles. The percentiles are quantiles that divide a distribution into 100 equal parts. The median is the 50 quantile.
+
+- Histogram: A function that counts the number of observations that fall into each of the disjoint categories (bins).
+
+```{r quantiles}
+quantile(x =  flights.hex$ArrDelay, na.rm = TRUE)
+h2o.hist(flights.hex$ArrDelay)
+```
+
+
+Cancellations ratio
+
+```{r cancelations}
+cancellations_month <- h2o.group_by(data = flights.hex, by = "Month", 
+                                    sum("Cancelled"), 
+                                    gb.control= list(na.methods="rm"))
+cancellations_month
+
+by_month <- h2o.group_by(flights.hex, by = "Month", nrow("Month"), 
+                         gb.control=list(na.methods="rm"))
+
+cancellation_rate <- cancellations_month$sum_Cancelled/by_month$nrow
+rates_table <- h2o.cbind(by_month$Month, cancellation_rate)
+rates_tableDF = as.data.frame(rates_table)
+plot(rates_tableDF, type = 'h')
+```
+
+## Modeling
+
+### Set response
+
+Set predictor and response variables
+
+```{r predictor}
+response <- "IsArrDelayed"
+predictors <- c("Year", "Month", "DayofMonth", "DayOfWeek", "UniqueCarrier", 
+      "Origin", "Dest","Distance")
+```
+
+Should we include _"IsDepDelayed"_?
+
+### Split the data
+
+We are going to build models with two splittings, one with validation data and one without it.
+
+```{r split}
+data_validation <- h2o.splitFrame(flights.hex, ratios=c(.7,.15),
+                      destination_frames = c("train","test","valid"),
+                      seed = 511892)
+names(data_validation) <- c("Train","Test","Valid")
+
+data <- h2o.splitFrame(flights.hex, ratios=c(.85),
+                      destination_frames = c("train","test"),
+                      seed = 511892)
+names(data) <- c("Train","Test")
+```
+
+### Model
+
+```{r model}
+flights_glm <- h2o.glm(model_id = "unregularized", training_frame=data_validation$Train, 
+                       validation_frame = data_validation$Valid, x = predictors, 
+                       y = response, family = 'binomial', seed = 511892)
+h2o.confusionMatrix(flights.glm, valid=TRUE)
+```
+```{r roc_curve}
+fpr <- flights_glm@model$training_metrics@metrics$thresholds_and_metric_scores$fpr
+tpr <- flights_glm@model$training_metrics@metrics$thresholds_and_metric_scores$tpr
+fpr_val <- flights.regularized@model$validation_metrics@metrics$thresholds_and_metric_scores$fpr
+tpr_val <- flights.regularized@model$validation_metrics@metrics$thresholds_and_metric_scores$tpr
+plot(fpr,tpr, type='l', main = 'AUC')
+lines(fpr_val,tpr_val,type='l',col='red')
+legend("bottomright",c("Train", "Validation"),col=c("black","red"),lty=c(1,1),lwd=c(3,3))
+```
+
+```{r model_cross-validation}
+flights_cross <- h2o.glm(model_id = "cross-validation", training_frame = data$Train, 
+                         x = predictors, y = response, family='binomial', 
+                         nfolds = 5, seed = 511892)
+
+h2o.confusionMatrix(flights_cross, valid=FALSE) # get confusion matrix in the training data
+```
+
+```{r model_regularized}
+flights_glm_r <- h2o.glm(model_id = "regularized", training_frame = data$Train, 
+                         validation_frame = data$Valid, x = x, y = y,
+                         family='binomial', lambda_search = TRUE, solver = 'COORDINATE_DESCENT')
+```
+
+```{r explore_model}
+flights_glm_r
+```
+
+
+```{r}
+h2o.auc(flights_glm_r,valid=FALSE) # on train                   
+flights_glm_r@model$training_metrics@metrics$max_criteria_and_metric_scores   
+```
+
+```{r predict}
+pred <- h2o.predict(object = flights_glm_r, newdata = data$Test)
+plot(h2o.performance(flights_glm_r), type = "roc")
+```
