@@ -73,6 +73,12 @@ rates_table <- h2o.cbind(by_month$Month, cancellation_rate)
 rates_tableDF = as.data.frame(rates_table)
 plot(rates_tableDF, type = 'h')
 ```
+```{r is_delay}
+delayed <- h2o.group_by(data = flights.hex, by = "IsArrDelayed", 
+                                    nrow("IsArrDelayed"), 
+                                    gb.control= list(na.methods="rm"))
+delayed
+```
 
 ## Modeling
 
@@ -110,13 +116,16 @@ names(data) <- c("Train","Test")
 flights_glm <- h2o.glm(model_id = "unregularized", training_frame=data_validation$Train, 
                        validation_frame = data_validation$Valid, x = predictors, 
                        y = response, family = 'binomial', seed = 511892)
-h2o.confusionMatrix(flights.glm, valid=TRUE)
+# Each row of the matrix represents the instances in a predicted class while each column represents the instances in an actual class
+h2o.confusionMatrix(flights_glm, valid=TRUE)
 ```
 ```{r roc_curve}
+# false positive rate
 fpr <- flights_glm@model$training_metrics@metrics$thresholds_and_metric_scores$fpr
+# true positive rate 
 tpr <- flights_glm@model$training_metrics@metrics$thresholds_and_metric_scores$tpr
-fpr_val <- flights.regularized@model$validation_metrics@metrics$thresholds_and_metric_scores$fpr
-tpr_val <- flights.regularized@model$validation_metrics@metrics$thresholds_and_metric_scores$tpr
+fpr_val <- flights_glm@model$validation_metrics@metrics$thresholds_and_metric_scores$fpr
+tpr_val <- flights_glm@model$validation_metrics@metrics$thresholds_and_metric_scores$tpr
 plot(fpr,tpr, type='l', main = 'AUC')
 lines(fpr_val,tpr_val,type='l',col='red')
 legend("bottomright",c("Train", "Validation"),col=c("black","red"),lty=c(1,1),lwd=c(3,3))
@@ -132,8 +141,9 @@ h2o.confusionMatrix(flights_cross, valid=FALSE) # get confusion matrix in the tr
 
 ```{r model_regularized}
 flights_glm_r <- h2o.glm(model_id = "regularized", training_frame = data$Train, 
-                         validation_frame = data$Valid, x = x, y = y,
-                         family='binomial', lambda_search = TRUE, solver = 'COORDINATE_DESCENT')
+                         validation_frame = data$Valid, x = predictors, y = response,
+                         family='binomial', lambda_search = TRUE, 
+                         solver = 'COORDINATE_DESCENT', alpha = 0.5)
 ```
 
 ```{r explore_model}

@@ -20,7 +20,10 @@
 ### Generalized Linear Models (GLM)
 
 [In H2O Docs](http://docs.h2o.ai/h2o/latest-stable/h2o-docs/data-science/glm.html)
+
 [Introduction to Generalized Linear Models](http://statmath.wu.ac.at/courses/heather_turner/glmCourse_001.pdf)
+
+[Demo H2O World](https://github.com/h2oai/h2o-tutorials/tree/master/tutorials/glm)
 
 Generalized Linear Models (GLM) estimate regression models for outcomes following exponential distributions. In addition to the Gaussian (i.e. normal) distribution, these include Poisson, binomial, and gamma distributions. Each serves a different purpose, and depending on distribution and link function choice, can be used either for prediction or classification.
 

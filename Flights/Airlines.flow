@@ -23,7 +23,7 @@
     },
     {
       "type": "cs",
-      "input": "      \"input\": \"parseFiles\\n  paths: [\\\"../smalldata/airlines/allyears2k.zip\\\"]\\n  destination_frame: \\\"allyears2k.hex\\\"\\n  parse_type: \\\"CSV\\\"\\n  separator: 44\\n  number_columns: 31\\n  single_quotes: false\\n  column_types: [\\\"Numeric\\\",\\\"Numeric\\\",\\\"Numeric\\\",\\\"Numeric\\\",\\\"Numeric\\\",\\\"Numeric\\\",\\\"Numeric\\\",\\\"Numeric\\\",\\\"Enum\\\",\\\"Numeric\\\",\\\"Enum\\\",\\\"Numeric\\\",\\\"Numeric\\\",\\\"Numeric\\\",\\\"Numeric\\\",\\\"Numeric\\\",\\\"Enum\\\",\\\"Enum\\\",\\\"Numeric\\\",\\\"Numeric\\\",\\\"Numeric\\\",\\\"Numeric\\\",\\\"Enum\\\",\\\"Numeric\\\",\\\"Numeric\\\",\\\"Numeric\\\",\\\"Numeric\\\",\\\"Numeric\\\",\\\"Numeric\\\",\\\"Enum\\\",\\\"Enum\\\"]\\n  delete_on_done: true\\n  check_header: -1\\n  chunk_size: 262144\"\n"
+      "input": "parseFiles\n  source_frames: [\"nfs://Users/Beardicion/Documents/H2O/Flights/data/allyears2k.csv\"]\n  destination_frame: \"allyears2k.hex\"\n  parse_type: \"CSV\"\n  separator: 44\n  number_columns: 31\n  single_quotes: false\n  column_names: [\"Year\",\"Month\",\"DayofMonth\",\"DayOfWeek\",\"DepTime\",\"CRSDepTime\",\"ArrTime\",\"CRSArrTime\",\"UniqueCarrier\",\"FlightNum\",\"TailNum\",\"ActualElapsedTime\",\"CRSElapsedTime\",\"AirTime\",\"ArrDelay\",\"DepDelay\",\"Origin\",\"Dest\",\"Distance\",\"TaxiIn\",\"TaxiOut\",\"Cancelled\",\"CancellationCode\",\"Diverted\",\"CarrierDelay\",\"WeatherDelay\",\"NASDelay\",\"SecurityDelay\",\"LateAircraftDelay\",\"IsArrDelayed\",\"IsDepDelayed\"]\n  column_types: [\"Numeric\",\"Numeric\",\"Numeric\",\"Numeric\",\"Numeric\",\"Numeric\",\"Numeric\",\"Numeric\",\"Enum\",\"Numeric\",\"Enum\",\"Numeric\",\"Numeric\",\"Numeric\",\"Numeric\",\"Numeric\",\"Enum\",\"Enum\",\"Numeric\",\"Numeric\",\"Numeric\",\"Numeric\",\"Enum\",\"Numeric\",\"Numeric\",\"Numeric\",\"Numeric\",\"Numeric\",\"Numeric\",\"Enum\",\"Enum\"]\n  delete_on_done: true\n  check_header: 1\n  chunk_size: 286298"
     },
     {
       "type": "cs",
@@ -31,15 +31,51 @@
     },
     {
       "type": "cs",
+      "input": "assist splitFrame, \"allyears2k.hex\""
+    },
+    {
+      "type": "cs",
+      "input": "splitFrame \"allyears2k.hex\", [0.7,0.15], [\"allyears2k.hex_0.70\",\"allyears2k.hex_0.150_val\",\"allyears2k.hex_0.150\"], 69836"
+    },
+    {
+      "type": "cs",
       "input": "assist buildModel, null, training_frame: \"allyears2k.hex\""
     },
     {
       "type": "cs",
-      "input": "buildModel 'glm', {\"model_id\":\"glm-5332cbaf-2b8c-4bda-b8f0-5993e4a1322a\",\"training_frame\":\"allyears2k.hex\",\"nfolds\":0,\"seed\":-1,\"response_column\":\"IsArrDelayed\",\"ignored_columns\":[],\"ignore_const_cols\":true,\"family\":\"binomial\",\"solver\":\"AUTO\",\"alpha\":[],\"lambda\":[],\"lambda_search\":true,\"early_stopping\":false,\"nlambdas\":\"100\",\"standardize\":true,\"non_negative\":false,\"score_each_iteration\":false,\"compute_p_values\":false,\"remove_collinear_columns\":false,\"max_iterations\":-1,\"link\":\"family_default\",\"max_runtime_secs\":0,\"custom_metric_func\":\"\",\"missing_values_handling\":\"MeanImputation\",\"intercept\":true,\"objective_epsilon\":-1,\"beta_epsilon\":0.0001,\"gradient_epsilon\":-1,\"prior\":-1,\"lambda_min_ratio\":-1,\"max_active_predictors\":-1,\"interactions\":[]}"
+      "input": "buildModel 'glm', {\"model_id\":\"glm-9ab9cab4-9afa-49b0-99d1-5a919c55384a\",\"training_frame\":\"allyears2k.hex_0.70\",\"validation_frame\":\"allyears2k.hex_0.150_val\",\"nfolds\":0,\"seed\":-1,\"response_column\":\"IsArrDelayed\",\"ignored_columns\":[\"DepTime\",\"CRSDepTime\",\"ArrTime\",\"CRSArrTime\",\"FlightNum\",\"TailNum\",\"ActualElapsedTime\",\"CRSElapsedTime\",\"AirTime\",\"ArrDelay\",\"DepDelay\",\"TaxiIn\",\"TaxiOut\",\"Cancelled\",\"CancellationCode\",\"Diverted\",\"CarrierDelay\",\"WeatherDelay\",\"NASDelay\",\"SecurityDelay\",\"LateAircraftDelay\",\"IsDepDelayed\"],\"ignore_const_cols\":true,\"family\":\"binomial\",\"solver\":\"AUTO\",\"alpha\":[],\"lambda\":[],\"lambda_search\":false,\"standardize\":true,\"non_negative\":false,\"score_each_iteration\":false,\"compute_p_values\":false,\"remove_collinear_columns\":false,\"max_iterations\":-1,\"link\":\"family_default\",\"max_runtime_secs\":0,\"custom_metric_func\":\"\",\"missing_values_handling\":\"MeanImputation\",\"intercept\":true,\"objective_epsilon\":-1,\"beta_epsilon\":0.0001,\"gradient_epsilon\":-1,\"prior\":-1,\"max_active_predictors\":-1,\"interactions\":[]}"
     },
     {
       "type": "cs",
-      "input": "getModel \"glm-5332cbaf-2b8c-4bda-b8f0-5993e4a1322a\""
+      "input": "getModel \"glm-9ab9cab4-9afa-49b0-99d1-5a919c55384a\""
+    },
+    {
+      "type": "cs",
+      "input": "predict model: \"glm-9ab9cab4-9afa-49b0-99d1-5a919c55384a\""
+    },
+    {
+      "type": "cs",
+      "input": "predict model: \"glm-9ab9cab4-9afa-49b0-99d1-5a919c55384a\", frame: \"allyears2k.hex_0.150\", predictions_frame: \"prediction-53383cf5-ea16-45b1-94fe-37654b5b2ed6\""
+    },
+    {
+      "type": "cs",
+      "input": "inspect getPrediction model: \"glm-9ab9cab4-9afa-49b0-99d1-5a919c55384a\", frame: \"allyears2k.hex_0.150\""
+    },
+    {
+      "type": "cs",
+      "input": "inspect \"Prediction\", getPrediction model: \"glm-9ab9cab4-9afa-49b0-99d1-5a919c55384a\", frame: \"allyears2k.hex_0.150\""
+    },
+    {
+      "type": "cs",
+      "input": "grid inspect \"Prediction\", getPrediction model: \"glm-9ab9cab4-9afa-49b0-99d1-5a919c55384a\", frame: \"allyears2k.hex_0.150\""
+    },
+    {
+      "type": "cs",
+      "input": "bindFrames \"combined-prediction-53383cf5-ea16-45b1-94fe-37654b5b2ed6\", [ \"prediction-53383cf5-ea16-45b1-94fe-37654b5b2ed6\", \"allyears2k.hex_0.150\" ]"
+    },
+    {
+      "type": "cs",
+      "input": "getFrameSummary \"combined-prediction-53383cf5-ea16-45b1-94fe-37654b5b2ed6\""
     }
   ]
 }
