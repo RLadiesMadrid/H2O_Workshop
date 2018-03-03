@@ -1,14 +1,3 @@
-<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
-
-	- [About H2O](#about-h2o)
-	- [About this workshop](#about-this-workshop)
-	- [About the algorithms](#about-the-algorithms)
-		- [Generalized Linear Models (GLM)](#generalized-linear-models-glm)
-		- [Word2vec](#word2vec)
-	- [Vignettes](#vignettes)
-
-<!-- /TOC -->
-
 ## About H2O
 
 [In H2O Docs](http://docs.h2o.ai/h2o/latest-stable/h2o-docs/welcome.html)
@@ -16,6 +5,7 @@
 ## About this workshop
 
 [WeCodeFest slides](https://docs.google.com/presentation/d/1d5nJh9_Fo1XqSliTXLGBHcry2RtURfon_LA4c2PL3FE/edit?usp=sharing)
+[Requirements](https://github.com/RLadiesMadrid/H2O_Instructions/)
 
 ## About the algorithms
 
